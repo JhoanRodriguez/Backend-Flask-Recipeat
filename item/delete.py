@@ -9,7 +9,8 @@ mongo_collection_name = os.environ['MONGO_COLLECTION_NAME']
 url = os.environ['MONGO_DB_URL']
 
 # Connection String
-client = pymongo.MongoClient("mongodb+srv://" + usr + ":" + pwd + "@" + url + "/test?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://" + usr + ":" + pwd + "@"
+                             + url + "/test?retryWrites=true&w=majority")
 db = client[mongo_db_name]
 collection = db[mongo_collection_name]
 
