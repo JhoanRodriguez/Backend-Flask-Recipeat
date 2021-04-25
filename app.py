@@ -26,14 +26,33 @@ collection = db[mongo_collection_name]
 
 @app.route('/api/recipes', methods=['GET'])
 def Get_Recipes():
-    # Getting all data
+    # Getting all data with pagination
     response = []
-    cursor = collection.find()
+    offset = int(request.args['offset'])
+    limit = int(request.args['limit'])
+    total = collection.count()
+
+    if offset < 0:
+        offset = 0
+    if limit < 0:
+        limit = 0
+    if offset >= total or limit > total:
+        return jsonify({'response_items': response}), 200
+    start_id = collection.find().sort('_id', pymongo.ASCENDING)
+    last_id = start_id[offset]['_id']
+    cursor = collection.find({'_id': {'$gte': last_id}}).sort(
+        '_id', pymongo.ASCENDING).limit(limit)
     for document in cursor:
         response.append(document)
 
+    prev_url = '/api/recipes?limit=' + \
+        str(limit) + '&offset=' + str(offset - limit)
+    next_url = '/api/recipes?limit=' + \
+        str(limit) + '&offset=' + str(offset + limit)
     # return response
-    return jsonify({'response_items': response}), 200
+    return jsonify({'response_items': response,
+                    'prev_url': prev_url,
+                    'next_url': next_url}), 200
 
 
 @app.route('/api/recipes/<id>', methods=['GET'])
@@ -70,15 +89,16 @@ def New_Recipe():
     # write item to database
     collection.insert_one(item)
     # return response
-    return jsonify({'message': 'Recipe Created'}), 200
+    return jsonify({'message': 'Recipe Created'}), 201
 
 
-@app.route('/api/search<item>', methods=['GET'])
+@app.route('/api/search=<item>', methods=['GET'])
 def Search_by(item):
     # Search by ingredients
     response = []
     print(item)
-    cursor = collection.find({"$text": {"$search": item}})
+    cursor = collection.find({"$text": {"$search": item}},
+                             {"score": {"$meta": "textScore"}})
     for document in cursor:
         response.append(document)
 
