@@ -13,6 +13,8 @@ pip install requirements.txt
 
 ```python
 
+You will  need to setup the env variables before to run the app.
+
 Run python3 app.py
 The app will be running at localhost:5000
 ```
